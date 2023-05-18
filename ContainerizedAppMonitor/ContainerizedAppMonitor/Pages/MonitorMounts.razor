@@ -1,0 +1,113 @@
+﻿@page "/monitormounts"
+@using Azure.ResourceManager
+@using Azure.ResourceManager.ContainerInstance
+
+<PageTitle>Monitor Mounts</PageTitle>
+
+<button class="btn btn-primary" @onclick=@(() => GetMountContents(LogAction.Display))>Display mount contents</button>
+<button class="btn btn-primary" @onclick=@(() => GetMountContents(LogAction.Log))>Log mount contents</button>
+<br />
+<button disabled class="btn btn-primary" @onclick=@(() => GetEnvironment(LogAction.Display))>Display environment variables</button>
+<button disabled class="btn btn-primary" @onclick=@(() => GetEnvironment(LogAction.Log))>Log environment variables</button>
+<br />
+<button disabled class="btn btn-primary" @onclick=@(() => GetContainerLog(LogAction.Display))>Display container log</button>
+<button disabled class="btn btn-primary" @onclick=@(() => GetContainerLog(LogAction.Log))>Log container log</button>
+<br />
+<textarea cols="150" readonly rows="30">@output</textarea>
+
+@code {
+    private enum LogAction
+    {
+        Display,
+        Log
+    }
+    private string output = "Hello there";
+
+    private void GetMountContents(LogAction action)
+    {
+        string message = string.Empty;
+
+        string? MAP_DATA_MOUNT_PATH = Environment.GetEnvironmentVariable("MAP_DATA_MOUNT_PATH");
+        string? MAP_DATA_MOUNTS_JSON = Environment.GetEnvironmentVariable("MAP_DATA_MOUNTS_JSON");
+
+        List<string> sharePaths = (!string.IsNullOrWhiteSpace(MAP_DATA_MOUNTS_JSON))
+            ? MAP_DATA_MOUNTS_JSON.Split(';').ToList()
+            : MAP_DATA_MOUNT_PATH is not null
+              ? new() { MAP_DATA_MOUNT_PATH }
+              : new();
+
+        foreach (string sharePath in sharePaths)
+        {
+            DirectoryInfo? dirInfo = default;
+            try
+            {
+                dirInfo = Directory.CreateDirectory(sharePath);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                output = $"Share root directory <{sharePath}> not found when trying to examine contents";
+                continue;
+            }
+
+            MountedShares worker = new MountedShares();
+
+            var dirContents = worker.GetDirContents(dirInfo.FullName);
+            dirContents.ForEach(e => message += $"{e}{Environment.NewLine}");
+
+            switch (action)
+            {
+                case LogAction.Display:
+                    output = message;
+                    break;
+
+                case LogAction.Log:
+                    output = "Hello there";
+                    Console.WriteLine(message);
+                    break;
+            }
+        }
+
+    }
+
+    private void GetContainerLog(LogAction action)
+    {
+    }
+
+    private void GetEnvironment(LogAction action)
+    {
+        string result = $"Environment:{Environment.NewLine}";
+
+        string? MAP_URL_PATH_BASE = Environment.GetEnvironmentVariable("MAP_URL_PATH_BASE");
+        result += $"MAP_URL_PATH_BASE is {MAP_URL_PATH_BASE}{Environment.NewLine}";
+
+        string? MAP_CHECK = Environment.GetEnvironmentVariable("MAP_CHECK");
+        result += $"MAP_CHECK is {MAP_CHECK}{Environment.NewLine}";
+
+        string? MAP_CLIENT_NAME = Environment.GetEnvironmentVariable("MAP_CLIENT_NAME");
+        result += $"MAP_CLIENT_NAME is {MAP_CLIENT_NAME}{Environment.NewLine}";
+
+        string? MAP_CONTENT_ITEM_NAME = Environment.GetEnvironmentVariable("MAP_CONTENT_ITEM_NAME");
+        result += $"MAP_CONTENT_ITEM_NAME is {MAP_CONTENT_ITEM_NAME}{Environment.NewLine}";
+
+        string? MAP_SELECTION_GROUP_NAME = Environment.GetEnvironmentVariable("MAP_SELECTION_GROUP_NAME");
+        result += $"MAP_SELECTION_GROUP_NAME is {MAP_SELECTION_GROUP_NAME}{Environment.NewLine}";
+
+        string? MAP_DATA_MOUNT_PATH = Environment.GetEnvironmentVariable("MAP_DATA_MOUNT_PATH");
+        result += $"MAP_DATA_MOUNT_PATH is {MAP_DATA_MOUNT_PATH}{Environment.NewLine}";
+
+        string? MAP_DATA_MOUNTS_JSON = Environment.GetEnvironmentVariable("MAP_DATA_MOUNTS_JSON");
+        result += $"MAP_DATA_MOUNTS_JSON is {MAP_DATA_MOUNTS_JSON}{Environment.NewLine}";
+
+        switch (action)
+        {
+            case LogAction.Display:
+                output += result;
+                break;
+
+            case LogAction.Log:
+                output = "Hello there";
+                Console.WriteLine(result);
+                break;
+        }
+    }
+}
