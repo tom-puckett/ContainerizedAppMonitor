@@ -43,7 +43,7 @@
             {
                 dirInfo = Directory.CreateDirectory(sharePath);
             }
-            catch (DirectoryNotFoundException ex)
+            catch (DirectoryNotFoundException)
             {
                 output = $"Share root directory <{sharePath}> not found when trying to examine contents";
                 continue;

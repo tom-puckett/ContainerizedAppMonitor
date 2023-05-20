@@ -34,7 +34,7 @@ namespace ContainerizedAppMonitor
                 {
                     dirInfo = Directory.CreateDirectory(sharePath);
                 }
-                catch (DirectoryNotFoundException ex)
+                catch (DirectoryNotFoundException)
                 {
                     Console.WriteLine($"Share root directory <{sharePath}> not found when trying to examine contents");
                     continue;
