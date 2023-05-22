@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# from the directory where the containerizedappmonitor project file exists
+podman build --volume /mnt/c/Testing:/mnt/testing -t containerizedappmonitor .
+podman save -o containerizedappmonitor --format=docker-dir localhost/containerizedappmonitor
+cd containerizedappmonitor
+tar cvfz containerizedappmonitor.tar.gz *

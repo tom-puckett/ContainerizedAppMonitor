@@ -1,0 +1,5 @@
+#!/bin/bash
+podman stop $1
+sleep 2
+podman rm $1
+
